@@ -1,0 +1,48 @@
+'''What did we do?
+
+Data Cleansing
+
+1. Have a look at Data.
+2. Data looks good, but has some Anomalies.
+    Every Measurement has Weld-Data, but not evey Measurement has Audio-Data!
+    Inspection showed, that on Measurement has a higher Mic-Sensitivity due to a Restart, but no Audio-File available.
+    Since there is no Audio, we decided to keep it anyway.
+
+    Weld-Data never has Entries for Wire!
+    Interesting: Database says ''No Audio for Measurement 318'', but there is :)
+3. To make processing easier, the first 10 rows are dropped
+
+Feature Engineering
+
+1. We decided to compute the mean, std, RMS, min. and max. and fill it into our Database to decide for precise features
+2. We handle missing Audiodata by putting in a 0
+3. To properly classify, we decided to create the 5 classes: iO, niO - oil, niO - offset, niO - tilt
+4. So we need a class to compute features, fill blanks and create class labels
+
+5. In 0001_Database_with_features are the results of this operation
+6. With the random forest classifier we found out which feature is the most influential!
+7. Plot Screenshot in "Sonstiges"
+
+Model
+
+1. When using Random Forest Classifier you can use the extracted Features to instantly build a model
+2. Build Model with the top 6 features
+3. Train it, Evaluate it, Print Label
+
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00        10
+           1       0.78      0.88      0.82        16
+           2       0.88      0.79      0.83        19
+           3       1.00      1.00      1.00         7
+
+    accuracy                           0.88        52
+   macro avg       0.92      0.92      0.91        52
+weighted avg       0.89      0.88      0.88        52
+
+Class Mapping (Encoded Value to Original Label):
+0: iO
+1: niO - Tilt
+2: niO - offset
+3: niO - oil
+'''
