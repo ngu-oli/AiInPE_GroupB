@@ -91,22 +91,3 @@ class FeatureImportanceEvaluator:
         print("Class Mapping (Encoded Value to Original Label):")
         for k, v in class_mapping.items():
             print(f"{k}: {v}")
-
-
-# Hier den Path angeben an dem die Daten (MIT FEATURE) gespeichert sind!
-filepath = r'C:\Users\CT-Laptop-01\PycharmProjects\AiInPE_GroupB\src\Data\0001_Database_with_features.xlsx'
-feature_importance_evaluator = FeatureImportanceEvaluator(filepath)
-feature_importance_evaluator.load_data()
-feature_importance_evaluator.preprocess_data()
-feature_importance_evaluator.train_model()
-feature_importance_evaluator.evaluate_feature_importance()
-
-# Plot the top 10 features
-feature_importance_evaluator.plot_feature_importance()
-
-# Get the top 10 features
-top_features = feature_importance_evaluator.get_top_features()
-print(top_features)
-
-feature_importance_evaluator.train_and_evaluate_top_features_model(top_n=6)
-feature_importance_evaluator.print_class_mapping()

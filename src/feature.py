@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from measurement import Measurement
-from database import Database
+from src.measurement import Measurement
+from src.database import Database
 import os
 
 
@@ -9,7 +9,7 @@ class FeatureExtracting:
     def __init__(self, audio_folder, weld_folder, database_filepath):
         self.audio_measurements = Measurement(audio_folder)
         self.weld_measurements = Measurement(weld_folder)
-        self.database = Database(database_filepath, skip_rows=0, use_cols=None)
+        self.database = Database(database_filepath, skip_rows=10, use_cols="B:O")
 
     def rename_labels(self):
         if self.database.data is not None:
@@ -96,29 +96,3 @@ class FeatureExtracting:
         else:
             print("Error: Database data is not loaded correctly, nothing to save.")
 
-# As you can see I stored the Data in a folder ("Data") in the src directory & Added folder for Audio and Weld
-audio_folder = r"C:\Users\CT-Laptop-01\PycharmProjects\AiInPE_GroupB\src\Data\01_Audio"
-weld_folder = r"C:\Users\CT-Laptop-01\PycharmProjects\AiInPE_GroupB\src\Data\02_Weldqas"
-database_filepath = r"C:\Users\CT-Laptop-01\PycharmProjects\AiInPE_GroupB\src\Data\0001_Database.xlsx"
-
-# New Datasheet: Cleansed, only with number, label, and features!
-output_filepath = r'C:\Users\CT-Laptop-01\PycharmProjects\AiInPE_GroupB\src\Data\0001_Database_with_features.xlsx'
-
-# Ensure 'openpyxl' is installed before running the code
-feature_extractor = FeatureExtracting(audio_folder, weld_folder, database_filepath)
-
-# Print the column names to verify
-print(feature_extractor.database.data.columns)
-
-clean_data = feature_extractor.cleanse_data()
-
-if clean_data is not None:
-    feature_extractor.save_to_excel(output_filepath)
-    print(clean_data[['Number of Measurement', 'Dataset'] + [
-        'audio_mean', 'audio_std', 'audio_min', 'audio_max', 'audio_rms',
-        'current_mean', 'current_std', 'current_min', 'current_max', 'current_rms',
-        'voltage_mean', 'voltage_std', 'voltage_min', 'voltage_max', 'voltage_rms',
-        'wire_mean', 'wire_std', 'wire_min', 'wire_max', 'wire_rms'
-    ]].head())
-else:
-    print("Data cleansing failed due to errors in loading the database.")

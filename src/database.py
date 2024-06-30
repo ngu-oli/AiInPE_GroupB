@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 class Database:
     def __init__(self, filepath, skip_rows, use_cols):
         self.data = self.read_data_table(filepath, skip_rows=skip_rows, use_cols=use_cols)
-        # list of numeric cols in the dataframe
-        # self.numeric_cols = list(self.data.select_dtypes('number'))
         
     def read_data_table(self, filepath, skip_rows, use_cols):
         try:
