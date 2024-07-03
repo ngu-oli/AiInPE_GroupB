@@ -43,7 +43,7 @@ class FeatureImportanceEvaluator:
         self.feature_importance_df = pd.DataFrame({'Feature': self.feature_columns, 'Importance': feature_importances})
         self.feature_importance_df = self.feature_importance_df.sort_values(by='Importance', ascending=False)
 
-    def plot_feature_importance(self, top_n=10):
+    def plot_feature_importance(self, top_n=25):
         if self.feature_importance_df is not None:
             top_features = self.feature_importance_df.head(top_n)
             plt.figure(figsize=(12, 8))
