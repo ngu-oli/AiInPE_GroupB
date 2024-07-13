@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_selection import SelectKBest, VarianceThreshold, f_classif
+from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import classification_report
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,14 +41,14 @@ class FeatureImportanceEvaluator:
         self.feature_importance_df = pd.DataFrame({'Feature': self.feature_columns, 'Importance': feature_importances})
         self.feature_importance_df = self.feature_importance_df.sort_values(by='Importance', ascending=False)
 
-    def plot_feature_importance(self, top_n=25):
+    def plot_feature_importance_random_forest(self, top_n=25):
         if self.feature_importance_df is not None:
             top_features = self.feature_importance_df.head(top_n)
             plt.figure(figsize=(12, 8))
             plt.barh(np.array(top_features['Feature'])[::-1], np.array(top_features['Importance'])[::-1])
             plt.xlabel('Feature Importance')
             plt.ylabel('Feature')
-            plt.title('Top Feature Importance for Classification')
+            plt.title('Top Feature Importance for Classification (Random Forest)')
             plt.show()
         else:
             print("Feature importance has not been evaluated. Please run evaluate_feature_importance() first.")
@@ -67,7 +67,25 @@ class FeatureImportanceEvaluator:
         selected_indices = selector.get_support(indices=True)
         k_best_features = [self.feature_columns[i] for i in selected_indices]
         return k_best_features
+    
+    def plot_feature_importance_selectkbest(self, k=10):
+        selector = SelectKBest(score_func=f_classif, k=k)
+        selector.fit(self.X, self.y)
+        scores = selector.scores_[selector.get_support()]
+        selected_indices = selector.get_support(indices=True)
+        k_best_features = [self.feature_columns[i] for i in selected_indices]
 
+        # Sort the features and scores in descending order of scores
+        sorted_indices = np.argsort(scores)[::-1]
+        sorted_features = np.array(k_best_features)[sorted_indices]
+        sorted_scores = scores[sorted_indices]
+
+        plt.figure(figsize=(12, 8))
+        plt.barh(sorted_features[::-1], sorted_scores[::-1])
+        plt.xlabel('Feature Importance (ANOVA F-value)')
+        plt.ylabel('Feature')
+        plt.title(f'Top {k} Feature Importance for Classification (SelectKBest)')
+        plt.show()
 
     def train_and_evaluate_top_features_model(self, top_n=10):
         if self.feature_importance_df is not None:
@@ -95,7 +113,7 @@ class FeatureImportanceEvaluator:
 
             # Evaluate the model
             y_pred = rf_classifier_top.predict(X_test_top)
-            report = classification_report(y_test, y_pred)
+            report = classification_report(y_test, y_pred, digits=4)
             print(report)
         else:
             print("Feature importance has not been evaluated. Please run evaluate_feature_importance() first.")

@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, VarianceThreshold, f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.metrics import accuracy_score, classification_report
@@ -58,20 +57,15 @@ class ClassifierComparison:
 
     def compare_classifiers(self, top_features=10):
 
-        # Initial split into training+validation (90%) and testing (10%)
-        X_train_val, X_test, y_train_val, y_test = train_test_split(self.X, self.y, test_size=0.1, random_state=42)
-
-        # Further split training+validation into training and validation
-        X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=0.22, random_state=42)
+        # Initial split into training+validation (80%) and testing (20%)
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
 
         print(f"Training set size: {X_train.shape[0]}")
-        print(f"Validation set size: {X_val.shape[0]}")
         print(f"Test set size: {X_test.shape[0]}")
 
         # Select top k features based on ANOVA F-value
         selector = SelectKBest(score_func=f_classif, k=top_features)
         X_train_new = selector.fit_transform(X_train, y_train)
-        X_val_new = selector.transform(X_val)
         X_test_new = selector.transform(X_test)
 
         # Get the selected feature names
@@ -89,45 +83,38 @@ class ClassifierComparison:
             "AdaBoost": AdaBoostClassifier(n_estimators=100, random_state=42, algorithm='SAMME')
         }
 
+       # save best classifier
+        best_accuracy, best_report, best_name = 0, None, None
+
         # Train and evaluate classifiers
         results = {}
+        print("-------------------------------------------------------------")
+        print("Evaluating classifiers...\n")
 
         for name, clf in classifiers.items():
             # Train the classifier
             clf.fit(X_train_new, y_train)
             # Predict on the validation set
-            y_val_pred = clf.predict(X_val_new)
+            y_pred = clf.predict(X_test_new)
             # Evaluate the classifier
-            accuracy = accuracy_score(y_val, y_val_pred)
-            report = classification_report(y_val, y_val_pred, output_dict=True)
+            accuracy = accuracy_score(y_test, y_pred)
+            report = classification_report(y_test, y_pred)
             results[name] = {"accuracy": accuracy, "classification_report": report}
+            
+            # Assign this classifier as best if better accuracy
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                best_report = report
+                best_name = name
 
         # Display validation results
         for name, metrics in results.items():
             print(f"Classifier: {name}")
-            print(f"Validation Accuracy: {metrics['accuracy']:.4f}")
-            print(f"Validation Classification Report:\n{metrics['classification_report']}\n")
-
-        # Final evaluation on the test set with the best classifier (e.g., RandomForestClassifier)
-        best_clf = RandomForestClassifier(n_estimators=100, random_state=42)
-        best_clf.fit(X_train_new, y_train)
-        y_test_pred = best_clf.predict(X_test_new)
-
-        # Evaluate the best classifier on the test set
-        test_accuracy = accuracy_score(y_test, y_test_pred)
-        test_report = classification_report(y_test, y_test_pred)
-
-        print(f"RandomForestClassifier Test Accuracy: {test_accuracy:.4f}")
-        print(f"Test Classification Report:\n{test_report}")
+            print(f"Accuracy: {metrics['accuracy']:.4f}")
+            print(f"Classification Report:\n{metrics['classification_report']}\n")
 
 
-        best_clf2 = LogisticRegression(solver='saga', max_iter=5000, random_state=42)
-        best_clf2.fit(X_train_new, y_train)
-        y_test_pred = best_clf2.predict(X_test_new)
-
-        # Evaluate the best classifier on the test set
-        test_accuracy2 = accuracy_score(y_test, y_test_pred)
-        test_report2 = classification_report(y_test, y_test_pred)
-
-        print(f"LogisticRegression Test Accuracy: {test_accuracy2:.4f}")
-        print(f"Test Classification Report:\n{test_report2}")
+        # print best classifier
+        print("-------------------------------------------------------------")
+        print(f"Best Accuracy: {best_accuracy} using the {best_name} classifier.")
+        print(best_report)
